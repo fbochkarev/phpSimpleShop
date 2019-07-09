@@ -1,6 +1,11 @@
 <?php
 include 'elems/init.php';
 
+//Реализуйте админку, в которой можно добавлять, удалять и редактировать товары. Также в админке виден список пользователей.
+//Админ может забанить и разбанить пользователя, а также повысить его до админа. Также в админке должна быть статистика
+//покупок - сумма продаж по месяцам.
+
+
 $content = '';
 
 if (!empty($_SESSION['auth']) && $_SESSION['status'] == 'admin') {
@@ -12,8 +17,12 @@ if (!empty($_SESSION['auth']) && $_SESSION['status'] == 'admin') {
     $content .= "<h4>Новый продукт:</h4>
                 <form action='add.php'>
                 <input type='submit' value='+ Добавить'>
-                </form>";
+                </form><br>";
 
+    $content .= shoppingStatistics($link);
+
+} else {
+    header('Location: /shop/');
 }
 
 include 'elems/layout.php';
@@ -49,7 +58,11 @@ function getProducts($link)
                         <td>{$datum['price']}</td>
                         <td>{$datum['category']}</td>
                         <td>{$datum['subcategory']}</td>
-                        <td></td>
+                        <td>
+                        <form action='add.php' method='post'>
+                            <input type='hidden' name='id' value='{$datum['id']}'>
+                            <input type='submit' value='изменить'>
+                        </form></td>
                         <td><form action='deleteProduct.php' method='post'>
                             <input type='hidden' name='id' value='{$datum['id']}'>
                             <input type='submit' value='удалить'>
@@ -107,7 +120,7 @@ function getUsers($link)
                         <td>{$datum['id']}</td>
                         <td>{$datum['login']}</td>
                         <td>{$datum['status']}</td>
-                        <td><form action='deleteAdmin.php' method='post'>
+                        <td><form action='deleteUser.php' method='post'>
                             <input type='hidden' name='id' value='{$datum['id']}'>
                             <input type='submit' value='удалить'>
                         </form></td>
@@ -126,6 +139,126 @@ function getUsers($link)
     }
 
     $content .= "</tbody></table><br><br><br>";
+
+    return $content;
+}
+
+function shoppingStatistics($link)
+{
+    $query = "SELECT *, month(sold_date) as month FROM users_products
+                LEFT JOIN products ON users_products.product_id=products.id
+                RIGHT JOIN users ON users_products.user_id=users.id";
+    $result = mysqli_query($link, $query) or die($link);
+    for ($data = []; $row[] = mysqli_fetch_assoc($result); $data = $row) ;
+
+    $content = '<h4>Статистика покупок:</h4>';
+
+    $content .= '<table class="table table-sm"><thead>
+                    <tr>
+                    <th>users</th>
+                    <th>products</th>
+                    <th>price</th>
+                    <th>quantity</th>
+                    <th>month</th>
+                    </tr>
+                </thead>
+                <h5>Первый квартал</h5>
+                <tbody>';
+
+    for ($i = 1; $i <= 3; $i++) {
+        foreach ($data as $datum) {
+            if ($datum['month'] == $i) {
+                $content .= "<tr>
+                    <td>{$datum['login']}</td>
+                    <td>{$datum['name']}</td>
+                    <td>{$datum['price']}</td>
+                    <td>{$datum['quantity']}</td>
+                    <td>{$i}</td>
+                    </tr>";
+            }
+        }
+
+    }
+
+    $content .= "</tboby></table><h5>Второй квартал</h5>
+                <table class='table table-sm'><thead>
+                    <tr>
+                    <th>users</th>
+                    <th>products</th>
+                    <th>price</th>
+                    <th>quantity</th>
+                    <th>month</th>
+                    </tr>
+                </thead><tbody>";
+
+    for ($i = 4; $i <= 6; $i++) {
+        foreach ($data as $datum) {
+            if ($datum['month'] == $i) {
+                $content .= "<tr>
+                    <td>{$datum['login']}</td>
+                    <td>{$datum['name']}</td>
+                    <td>{$datum['price']}</td>
+                    <td>{$datum['quantity']}</td>
+                    <td>{$i}</td>
+                    </tr>";
+            }
+        }
+
+    }
+
+    $content .= "</tboby><table><h5>Третий квартал</h5>
+                <table class='table table-sm'><thead>
+                    <tr>
+                    <th>users</th>
+                    <th>products</th>
+                    <th>price</th>
+                    <th>quantity</th>
+                    <th>month</th>
+                    </tr>
+                </thead><tbody>'";
+
+    for ($i = 7; $i <= 9; $i++) {
+        foreach ($data as $datum) {
+            if ($datum['month'] == $i) {
+                $content .= "<tr>
+                    <td>{$datum['login']}</td>
+                    <td>{$datum['name']}</td>
+                    <td>{$datum['price']}</td>
+                    <td>{$datum['quantity']}</td>
+                    <td>{$i}</td>
+                    </tr>";
+            }
+        }
+
+    }
+
+    $content .= "</tboby></table><h5>Четвёртый квартал</h5>
+                <table class='table table-sm'><thead>
+                    <tr>
+                    <th>users</th>
+                    <th>products</th>
+                    <th>price</th>
+                    <th>quantity</th>
+                    <th>month</th>
+                    </tr>
+                </thead><tbody>'";
+
+    for ($i = 10; $i <= 12; $i++) {
+        foreach ($data as $datum) {
+            if ($datum['month'] == $i) {
+                $content .= "<tr>
+                    <td>{$datum['login']}</td>
+                    <td>{$datum['name']}</td>
+                    <td>{$datum['price']}</td>
+                    <td>{$datum['quantity']}</td>
+                    <td>{$i}</td>
+                    </tr>";
+            }
+        }
+
+    }
+
+    $content .= "</tbody></table>";
 
     return $content;
 }

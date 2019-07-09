@@ -26,6 +26,7 @@ echo '<br><br>';
 
 echo getCategory($link);
 
+//Выводим список категорий
 function getCategory($link)
 {
     $query = "SELECT * FROM category";

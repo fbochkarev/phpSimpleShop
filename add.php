@@ -1,19 +1,6 @@
 <?php
 include 'elems/init.php';
 
-////Загружаем файл на сервер
-//if (isset($_FILES['image'])){
-//// Каталог, в который мы будем принимать файл:
-//    $uploaddir = './images/';
-//    $uploadfile = $uploaddir.basename($_FILES['image']['name']);
-//
-//// Копируем файл из каталога для временного хранения файлов:
-//    if (copy($_FILES['image']['tmp_name'], $uploadfile))
-//    {
-//        echo "<h3>Файл успешно загружен на сервер</h3>";
-//    }
-//    else { echo "<h3>Ошибка! Не удалось загрузить файл на сервер!</h3>"; exit; }
-//}
 $content = '';
 
 //Вносим в базу новый продукт
@@ -29,16 +16,16 @@ if (isset($_POST['btn-upload'])) {
 
     // Каталог, в который мы будем принимать файл:
     $uploaddir = './images/';
-    $uploadfile = $uploaddir.basename($_FILES['image']['name']);
+    $uploadfile = $uploaddir . basename($_FILES['image']['name']);
 
 // Копируем файл из каталога для временного хранения файлов:
-    if (copy($_FILES['image']['tmp_name'], $uploadfile))
-    {
+    if (copy($_FILES['image']['tmp_name'], $uploadfile)) {
         $content .= "<h3>Файл успешно загружен на сервер</h3>";
+    } else {
+        $content .= "<h3>Ошибка! Не удалось загрузить файл на сервер!</h3>";
+        exit;
     }
-    else { $content .= "<h3>Ошибка! Не удалось загрузить файл на сервер!</h3>"; exit; }
 }
-
 
 
 if (!empty($_SESSION['auth']) && $_SESSION['status'] == 'admin') {
@@ -53,20 +40,40 @@ include 'elems/layout.php';
 function insertProduct($link)
 {
     $subcategory = getSubcategories($link);
+    $content = '';
 
-    $content = "<form action='' method='post' enctype='multipart/form-data'>
-                    <h4>Добавление нового продукта</h4>
-                    Введите название:<input type='text' name='name'><br>
-                    Введите цену:<input type='number' name='price' step='0.01'><br>
-                    Выберите картинку:<br>
-                    <input type='file' name='image'><br>
-                    Выберите подкатегорию:
-                    <select name='subcategory_id'>
-                        {$subcategory}
-                    </select><br><br>
-                    <input type='submit' name='btn-upload'>
-                </form>";
+    if (isset($_POST['id'])) {
+        $id = $_POST['id'];
+        $query = "SELECT * FROM products WHERE id='$id'";
+        $result = mysqli_query($link, $query) or die($link);
+        $product = mysqli_fetch_assoc($result);
 
+        $content .= "<form action='' method='post' enctype='multipart/form-data'>
+                        <h4>Редактирование продукта</h4>
+                        Введите название:<input type='text' name='name' value='{$product['name']}'><br>
+                        Введите цену:<input type='number' name='price' value='{$product['price']}' step='0.01'><br>
+                        Выберите картинку:<br>
+                        <input type='file' name='image' value='{$product['image']}'><br>
+                        Выберите подкатегорию:
+                        <select name='subcategory_id'>
+                            {$subcategory}
+                        </select><br><br>
+                        <input type='submit' name='btn-upload'>
+                    </form>";
+    } else {
+        $content .= "<form action='' method='post' enctype='multipart/form-data'>
+                        <h4>Добавление нового продукта</h4>
+                        Введите название:<input type='text' name='name'><br>
+                        Введите цену:<input type='number' name='price' step='0.01'><br>
+                        Выберите картинку:<br>
+                        <input type='file' name='image'><br>
+                        Выберите подкатегорию:
+                        <select name='subcategory_id'>
+                            {$subcategory}
+                        </select><br><br>
+                        <input type='submit' name='btn-upload'>
+                    </form>";
+    }
     return $content;
 }
 
